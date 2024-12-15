@@ -44,7 +44,6 @@ public class UserController {
 
 	@PostMapping("/authenticate")
 	public String authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
-		System.out.println("authenticate method execution started....");
 		Authentication authentication = authManager.authenticate(
 				new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
 		if (authentication.isAuthenticated())
