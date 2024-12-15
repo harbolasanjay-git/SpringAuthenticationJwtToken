@@ -1,6 +1,7 @@
 package com.stech.api.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,12 +31,20 @@ public class UserController {
 	}
 
 	@GetMapping("/public")
+	@PreAuthorize("hasAuthority('USER')")
 	public String getPublicPage() {
-		return "Welcome to public page !!!";
+		return "Welcome to public page(USER ROLE) !!!";
+	}
+	
+	@GetMapping("/publicAdm")
+	@PreAuthorize("hasAuthority('ADMIN')")
+	public String getAdminPage() {
+		return "Welcome to public page(ADMIN ROLE) !!!";
 	}
 
 	@PostMapping("/authenticate")
 	public String authenticateAndGetToken(@RequestBody AuthRequest authRequest) {
+		System.out.println("authenticate method execution started....");
 		Authentication authentication = authManager.authenticate(
 				new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
 		if (authentication.isAuthenticated())

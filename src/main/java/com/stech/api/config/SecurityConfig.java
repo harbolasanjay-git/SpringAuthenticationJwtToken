@@ -7,20 +7,28 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+import com.stech.api.filter.JwtAuthFilter;
 import com.stech.api.service.MyUserDetailService;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 	
 	@Autowired
 	MyUserDetailService userDetailService;
-		
+	
+	@Autowired
+	private JwtAuthFilter authFilter;
+			
 	public AuthenticationProvider authenticationProvider() {
 		DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
 		provider.setPasswordEncoder(NoOpPasswordEncoder.getInstance());
@@ -31,14 +39,18 @@ public class SecurityConfig {
 	@Bean
 	public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http.csrf().disable()
-					.authorizeHttpRequests()
-					.requestMatchers("/api/public","/api/authenticate").permitAll()
-					.and()
-					.authorizeHttpRequests()
-					.requestMatchers("/api/welcome")
-					.authenticated()
-					.and().formLogin()
-					.and().build();
+				.authorizeHttpRequests()
+				.requestMatchers("/api/authenticate").permitAll()
+				.and()
+				.authorizeHttpRequests()
+				.requestMatchers("/api/**")
+				.authenticated()
+				.and().sessionManagement()
+				.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+				.and()
+				.authenticationProvider(authenticationProvider())
+				.addFilterBefore(authFilter,UsernamePasswordAuthenticationFilter.class)
+				.build();
 	}
 	@Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
